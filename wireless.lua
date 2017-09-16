@@ -22,6 +22,7 @@ local function worker(args)
     local onclick       = args.onclick
     local widget 	= args.widget == nil and wibox.layout.fixed.horizontal() or args.widget == false and nil or args.widget
     local indent 	= args.indent or 3
+    local hide_when_rfkill_blocked = args.hide_when_rfkill_blocked or false
 
     local net_icon = wibox.widget.imagebox()
     net_icon:set_image(ICON_DIR.."wireless_na.png")
@@ -29,15 +30,32 @@ local function worker(args)
     net_text.font = font
     net_text:set_text(" N/A ")
     local signal_level = 0
+    local rfkill_blocked = false
     local function net_update()
-	awful.spawn.easy_async("awk 'NR==3 {printf \"%3.0f\" ,($3/70)*100}' /proc/net/wireless", function(stdout, stderr, reason, exit_code)
+	awful.spawn.easy_async("awk 'NR==3 {printf \"%3.0f\" ,($3/70)*100}' /proc/net/wireless",
+        function(stdout, stderr, reason, exit_code)
           signal_level = tonumber( stdout )
         end)
-        if signal_level == nil then
+    awful.spawn.easy_async_with_shell("rfkill list wifi | grep -q 'Soft blocked: yes'",
+        function(stdout, stderr, reason, exit_code)
+            if exit_code == 0 then
+                rfkill_blocked = true
+            else
+                rfkill_blocked = false
+            end
+        end)
+        if hide_when_rfkill_blocked and rfkill_blocked then
+            net_text.visible = false
+            net_icon.visible = false
+        elseif signal_level == nil then
+            net_text.visible = true
+            net_icon.visible = true
             connected = false
             net_text:set_text(" N/A ")
             net_icon:set_image(ICON_DIR.."wireless_na.png")
         else
+            net_text.visible = true
+            net_icon.visible = true
             connected = true
             net_text:set_text(string.format("%"..indent.."d%%", signal_level))
             if signal_level < 25 then
