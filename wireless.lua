@@ -96,7 +96,7 @@ local function worker(args)
             f:close()
 
             signal = ""
-            if popup_signal then
+            if popup_signal and signal_level then
                 signal = "├Strength\t"..signal_level.."\n"
             end
             msg =
