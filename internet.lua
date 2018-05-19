@@ -17,7 +17,7 @@ local function worker(args)
       image = ICON_DIR.."internet.png",
       resize = false,
     },
-    layout = wibox.container.margin(brightness_icon, 0, 0, 2)
+    layout = wibox.container.margin(brightness_icon, 4, 0, 4)
   }
   local no_internet = wibox.widget {
     {
@@ -25,7 +25,7 @@ local function worker(args)
       image = ICON_DIR.."internet_na.png",
       resize = false,
     },
-    layout = wibox.container.margin(brightness_icon, 0, 0, 2)
+    layout = wibox.container.margin(brightness_icon, 4, 0, 4)
   }
   -- Settings
   local timeout = args.timeout or 5
