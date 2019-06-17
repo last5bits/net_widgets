@@ -31,6 +31,7 @@ local function worker(args)
     net_text:set_text(" N/A ")
     local signal_level = 0
     local rfkill_blocked = false
+    local no_internet = false
     local function net_update()
 	awful.spawn.easy_async("awk 'NR==3 {printf \"%3.0f\" ,($3/70)*100}' /proc/net/wireless",
         function(stdout, stderr, reason, exit_code)
@@ -42,6 +43,14 @@ local function worker(args)
                 rfkill_blocked = true
             else
                 rfkill_blocked = false
+            end
+        end)
+    awful.spawn.easy_async_with_shell("nc -z 8.8.8.8 53 >/dev/null 2>&1",
+        function(_, _, _, exit_code)
+            if not (exit_code == 0) then
+                no_internet = true
+            else
+                no_internet = false
             end
         end)
         if hide_when_rfkill_blocked and rfkill_blocked then
@@ -58,7 +67,9 @@ local function worker(args)
             net_icon.visible = true
             connected = true
             net_text:set_text(string.format("%"..indent.."d%%", signal_level))
-            if signal_level < 25 then
+            if no_internet then
+                net_icon:set_image(ICON_DIR.."wireless_noconnect.png")
+            elseif signal_level < 25 then
                 net_icon:set_image(ICON_DIR.."wireless_0.png")
             elseif signal_level < 50 then
                 net_icon:set_image(ICON_DIR.."wireless_1.png")
