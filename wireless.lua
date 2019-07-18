@@ -98,7 +98,7 @@ local function worker(args)
 
 
 
-    local function text_grabber()
+    function text_grabber()
         local msg = ""
         if connected then
             local mac     = "N/A"
@@ -144,26 +144,6 @@ local function worker(args)
 
         return msg
     end
-
-    local notification = nil
-    function wireless:hide()
-	    if notification ~= nil then
-		    naughty.destroy(notification)
-		    notification = nil
-	    end
-    end
-
-    function wireless:show(t_out)
-	    wireless:hide()
-
-	    notification = naughty.notify({
-		    preset = fs_notification_preset,
-		    text = text_grabber(),
-		    timeout = t_out,
-            screen = mouse.screen,
-            position = popup_position
-	    })
-    end
     return widget or widgets_table
 end
 
@@ -176,8 +156,13 @@ function wireless:attach(widget, args)
 	    awful.button({}, 1, function() awful.util.spawn(onclick) end)
 	    ))
     end
-    widget:connect_signal('mouse::enter', function () wireless:show(0) end)
-    widget:connect_signal('mouse::leave', function () wireless:hide() end)
+    local wireless_t = awful.tooltip {
+      objects = { widget },
+      border_width = 1,
+      timer_function = function()
+          return text_grabber()
+      end
+}
     return widget
 end
 
