@@ -162,7 +162,7 @@ function wireless:attach(widget, args)
       timer_function = function()
           return text_grabber()
       end
-}
+    }
     return widget
 end
 
